@@ -1,0 +1,120 @@
+{
+	"name": "DynamicLinkedServices",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Something",
+				"type": "Copy",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "SqlSource"
+					},
+					"sink": {
+						"type": "SqlSink",
+						"writeBatchSize": 10000
+					},
+					"enableStaging": false,
+					"dataIntegrationUnits": 0
+				},
+				"inputs": [
+					{
+						"referenceName": "GenericSQLTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"DSServerInstance": {
+								"value": "@pipeline().parameters.SourceServerInstance",
+								"type": "Expression"
+							},
+							"DSDatabaseName": {
+								"value": "@pipeline().parameters.SourceDatabaseName",
+								"type": "Expression"
+							},
+							"DSSQLUser": {
+								"value": "@pipeline().parameters.SourceSQLUser",
+								"type": "Expression"
+							},
+							"DSSQLPassword": {
+								"value": "@pipeline().parameters.SourceSQLPassword",
+								"type": "Expression"
+							},
+							"DSTableName": {
+								"value": "@pipeline().parameters.SourceTableName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "GenericSQLTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"DSServerInstance": {
+								"value": "@pipeline().parameters.SinkServerInstance",
+								"type": "Expression"
+							},
+							"DSDatabaseName": {
+								"value": "@pipeline().parameters.SinkDatabaseName",
+								"type": "Expression"
+							},
+							"DSSQLUser": {
+								"value": "@pipeline().parameters.SinkSQLUser",
+								"type": "Expression"
+							},
+							"DSSQLPassword": {
+								"value": "@pipeline().parameters.SinkSQLPassword",
+								"type": "Expression"
+							},
+							"DSTableName": {
+								"value": "@pipeline().parameters.SinkTableName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"SourceServerInstance": {
+				"type": "String"
+			},
+			"SourceDatabaseName": {
+				"type": "String"
+			},
+			"SourceSQLUser": {
+				"type": "String"
+			},
+			"SourceSQLPassword": {
+				"type": "String"
+			},
+			"SourceTableName": {
+				"type": "String"
+			},
+			"SinkServerInstance": {
+				"type": "String"
+			},
+			"SinkDatabaseName": {
+				"type": "String"
+			},
+			"SinkSQLUser": {
+				"type": "String"
+			},
+			"SinkSQLPassword": {
+				"type": "String"
+			},
+			"SinkTableName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Demo Pipelines"
+		}
+	}
+}

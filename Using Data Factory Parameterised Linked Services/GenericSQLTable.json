@@ -1,0 +1,54 @@
+{
+	"name": "GenericSQLTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "GenericSQLDB",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"ServerInstance": {
+					"value": "@dataset().DSServerInstance",
+					"type": "Expression"
+				},
+				"DatabaseName": {
+					"value": "@dataset().DSDatabaseName",
+					"type": "Expression"
+				},
+				"SQLUser": {
+					"value": "@dataset().DSSQLUser",
+					"type": "Expression"
+				},
+				"SQLPassword": {
+					"value": "@dataset().DSSQLPassword",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"DSServerInstance": {
+				"type": "String"
+			},
+			"DSDatabaseName": {
+				"type": "String"
+			},
+			"DSSQLUser": {
+				"type": "String"
+			},
+			"DSSQLPassword": {
+				"type": "String"
+			},
+			"DSTableName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Demo Datasets"
+		},
+		"type": "AzureSqlTable",
+		"typeProperties": {
+			"tableName": {
+				"value": "@dataset().DSTableName",
+				"type": "Expression"
+			}
+		}
+	}
+}

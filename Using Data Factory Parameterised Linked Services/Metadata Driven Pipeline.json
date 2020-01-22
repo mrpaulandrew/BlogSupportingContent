@@ -1,0 +1,233 @@
+{
+	"name": "DynamicLinkedServiceBootstrap",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetTableList",
+				"type": "Lookup",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "SqlSource",
+						"sqlReaderQuery": "SELECT \n\ts.name + '.' + o.name AS TableName\nFROM \n\tsys.objects o\n\tINNER JOIN sys.schemas s\n\t\tON o.schema_id = s.schema_id\nWHERE\n\ts.name = 'SalesLT'\n\tAND o.type = 'U'"
+					},
+					"dataset": {
+						"referenceName": "GenericSQLTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"DSServerInstance": {
+								"value": "@pipeline().parameters.PSourceServerInstance",
+								"type": "Expression"
+							},
+							"DSDatabaseName": {
+								"value": "@pipeline().parameters.PSourceDatabaseName",
+								"type": "Expression"
+							},
+							"DSSQLUser": {
+								"value": "@pipeline().parameters.PSourceSQLUser",
+								"type": "Expression"
+							},
+							"DSSQLPassword": {
+								"value": "@pipeline().parameters.PSourceSQLPassword",
+								"type": "Expression"
+							},
+							"DSTableName": "objects"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Copy All Tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetTableList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetTableList').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Truncate Target Table",
+							"type": "SqlServerStoredProcedure",
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"typeProperties": {
+								"storedProcedureName": "sys.sp_executesql",
+								"storedProcedureParameters": {
+									"statement": {
+										"value": {
+											"value": "@concat('TRUNCATE TABLE ',item().TableName)",
+											"type": "Expression"
+										},
+										"type": "string"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "GenericSQLDB",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"ServerInstance": {
+										"value": "@pipeline().parameters.PSinkServerInstance",
+										"type": "Expression"
+									},
+									"DatabaseName": {
+										"value": "@pipeline().parameters.PSinkDatabaseName",
+										"type": "Expression"
+									},
+									"SQLUser": {
+										"value": "@pipeline().parameters.PSinkSQLUser",
+										"type": "Expression"
+									},
+									"SQLPassword": {
+										"value": "@pipeline().parameters.PSinkSQLPassword",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Copy Table",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Truncate Target Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"typeProperties": {
+								"source": {
+									"type": "SqlSource"
+								},
+								"sink": {
+									"type": "SqlSink",
+									"writeBatchSize": 10000
+								},
+								"enableStaging": false,
+								"dataIntegrationUnits": 0
+							},
+							"inputs": [
+								{
+									"referenceName": "GenericSQLTable",
+									"type": "DatasetReference",
+									"parameters": {
+										"DSServerInstance": {
+											"value": "@pipeline().parameters.PSourceServerInstance",
+											"type": "Expression"
+										},
+										"DSDatabaseName": {
+											"value": "@pipeline().parameters.PSourceDatabaseName",
+											"type": "Expression"
+										},
+										"DSSQLUser": {
+											"value": "@pipeline().parameters.PSourceSQLUser",
+											"type": "Expression"
+										},
+										"DSSQLPassword": {
+											"value": "@pipeline().parameters.PSourceSQLPassword",
+											"type": "Expression"
+										},
+										"DSTableName": {
+											"value": "@{item().TableName}",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "GenericSQLTable",
+									"type": "DatasetReference",
+									"parameters": {
+										"DSServerInstance": {
+											"value": "@pipeline().parameters.PSinkServerInstance",
+											"type": "Expression"
+										},
+										"DSDatabaseName": {
+											"value": "@pipeline().parameters.PSinkDatabaseName",
+											"type": "Expression"
+										},
+										"DSSQLUser": {
+											"value": "@pipeline().parameters.PSinkSQLUser",
+											"type": "Expression"
+										},
+										"DSSQLPassword": {
+											"value": "@pipeline().parameters.PSinkSQLPassword",
+											"type": "Expression"
+										},
+										"DSTableName": {
+											"value": "@{item().TableName}",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"PSourceServerInstance": {
+				"type": "String",
+				"defaultValue": "YOUR SOURCE INSTANCE.database.windows.net"
+			},
+			"PSourceDatabaseName": {
+				"type": "String",
+				"defaultValue": "AdventureWorksOLTP"
+			},
+			"PSourceSQLUser": {
+				"type": "String",
+				"defaultValue": "SOURCE USERNAME"
+			},
+			"PSourceSQLPassword": {
+				"type": "String",
+				"defaultValue": "SOURCE PASSWORD"
+			},
+			"PSinkServerInstance": {
+				"type": "String",
+				"defaultValue": "YOUR TARGET INSTANCE.database.windows.net"
+			},
+			"PSinkDatabaseName": {
+				"type": "String",
+				"defaultValue": "AdventureWorksOLTP"
+			},
+			"PSinkSQLUser": {
+				"type": "String",
+				"defaultValue": "TARGET USERNAME"
+			},
+			"PSinkSQLPassword": {
+				"type": "String",
+				"defaultValue": "TARGET PASSWORD"
+			}
+		}
+	}
+}
