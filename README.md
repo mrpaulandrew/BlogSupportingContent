@@ -4,6 +4,8 @@ All sorts of things supporting various blog posts... Sub folders per blog post t
 
 In blog post date order, with the latest post first:
 
+- [Execute Any Azure Data Factory Pipeline with an Azure Function](https://mrpaulandrew.com/2020/02/18/execute-any-azure-data-factory-pipeline-with-an-azure-function/)
+
 - [Summarise my Azure Data Factory ARM Template Using T-SQL](https://mrpaulandrew.com/2019/12/19/summarise-my-azure-data-factory-arm-template-using-t-sql/)
 
 - [Structuring Your Databricks Notebooks with Markdown, Titles, Widgets and Comments](https://mrpaulandrew.com/2019/11/28/structuring-your-databricks-notebooks-with-markdown-titles-widgets-and-comments/)
