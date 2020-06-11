@@ -1,0 +1,32 @@
+{
+	"name": "PipelineName",
+	"properties": {
+		"description": "Perform test worker.",
+		"activities": [
+			{
+				"name": "JustWait",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": {
+						"value": "@pipeline().parameters.WaitTime",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"WaitTime": {
+				"type": "int",
+				"defaultValue": 5
+			}
+		},
+		"folder": {
+			"name": "_ScaleOutTestWorkers"
+		},
+		"annotations": [
+			"PWorker"
+		]
+	}
+}
