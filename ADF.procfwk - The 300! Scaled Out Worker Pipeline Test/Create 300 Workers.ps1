@@ -1,6 +1,6 @@
 # Set global variables as required:
 $resourceGroupName = "ADF.procfwk"
-$dataFactoryName = "FrameworkFactoryTest"
+$dataFactoryName = "WorkersFactory"
 
 #SPN for deploying ADF:
 $tenantId = [System.Environment]::GetEnvironmentVariable('AZURE_TENANT_ID')
@@ -23,7 +23,7 @@ Connect-AzAccount -ServicePrincipal -Credential $pscredential -TenantId $tenantI
 $a = 1..300
 
 #Template pipeline
-$scriptPath = (Get-Item -Path ".\").FullName + "\Desktop\Temp\"
+$scriptPath = (Get-Item -Path ".\").FullName #+ "\Desktop\Temp\"
 $deploymentFilePath = $scriptPath + "\TemplatePipeline.json"
 $body = (Get-Content -Path $deploymentFilePath | Out-String)        
 $json = $body | ConvertFrom-Json

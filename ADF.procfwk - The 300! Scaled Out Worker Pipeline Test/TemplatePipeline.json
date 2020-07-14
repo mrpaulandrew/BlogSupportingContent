@@ -23,10 +23,10 @@
 			}
 		},
 		"folder": {
-			"name": "_ScaleOutTestWorkers"
+			"name": "_Workers"
 		},
 		"annotations": [
-			"PWorker"
+			"_Workers"
 		]
 	}
 }
