@@ -1,0 +1,13 @@
+{
+    "Name": "ADF Pipeline Executor",
+    "IsCustom": true,
+    "Description": "Can start an ADF Pipeline Run",
+    "Actions": [
+        "Microsoft.DataFactory/factories/pipelines/createrun/action",
+        "*/read"
+    ],
+    "NotActions": [],
+    "AssignableScopes": [
+        "/subscriptions/<YOUR SUBSCRIPTION>"
+    ]
+}
