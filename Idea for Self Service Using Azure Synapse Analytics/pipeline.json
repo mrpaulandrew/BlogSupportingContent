@@ -1,0 +1,431 @@
+{
+    "name": "Ingest and Consume",
+    "properties": {
+        "activities": [
+            {
+                "name": "Get File List",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "LocalFile",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "Directory": {
+                                "value": "@toLower('')",
+                                "type": "Expression"
+                            },
+                            "FileName": {
+                                "value": "@toLower('')",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "storeSettings": {
+                        "type": "FileServerReadSettings",
+                        "recursive": true
+                    },
+                    "formatSettings": {
+                        "type": "BinaryReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "Upload Files",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Get File List",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "Set Landing Path",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Get File List').output.childItems",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Case Copy",
+                            "type": "Switch",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "on": {
+                                    "value": "@substring(item().name,add(indexof(item().name,'.'),1),sub(length(item().name),add(indexof(item().name,'.'),1)))",
+                                    "type": "Expression"
+                                },
+                                "cases": [
+                                    {
+                                        "value": "xlsx",
+                                        "activities": [
+                                            {
+                                                "name": "XLS Copy",
+                                                "type": "Copy",
+                                                "dependsOn": [],
+                                                "policy": {
+                                                    "timeout": "7.00:00:00",
+                                                    "retry": 0,
+                                                    "retryIntervalInSeconds": 30,
+                                                    "secureOutput": false,
+                                                    "secureInput": false
+                                                },
+                                                "userProperties": [],
+                                                "typeProperties": {
+                                                    "source": {
+                                                        "type": "ExcelSource",
+                                                        "storeSettings": {
+                                                            "type": "FileServerReadSettings",
+                                                            "recursive": true
+                                                        }
+                                                    },
+                                                    "sink": {
+                                                        "type": "DelimitedTextSink",
+                                                        "storeSettings": {
+                                                            "type": "AzureBlobFSWriteSettings"
+                                                        },
+                                                        "formatSettings": {
+                                                            "type": "DelimitedTextWriteSettings",
+                                                            "quoteAllText": true,
+                                                            "fileExtension": ".txt"
+                                                        }
+                                                    },
+                                                    "enableStaging": false,
+                                                    "translator": {
+                                                        "type": "TabularTranslator",
+                                                        "typeConversion": true,
+                                                        "typeConversionSettings": {
+                                                            "allowDataTruncation": true,
+                                                            "treatBooleanAsNumber": false
+                                                        }
+                                                    }
+                                                },
+                                                "inputs": [
+                                                    {
+                                                        "referenceName": "LocalFileExcel",
+                                                        "type": "DatasetReference",
+                                                        "parameters": {
+                                                            "Directory": {
+                                                                "value": "@toLower('')",
+                                                                "type": "Expression"
+                                                            },
+                                                            "Filename": {
+                                                                "value": "@item().name",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "outputs": [
+                                                    {
+                                                        "referenceName": "LakeFileCSV",
+                                                        "type": "DatasetReference",
+                                                        "parameters": {
+                                                            "FileName": {
+                                                                "value": "@replace(item().name,'xlsx','csv')",
+                                                                "type": "Expression"
+                                                            },
+                                                            "Directory": {
+                                                                "value": "@concat('Landing/',variables('ProcessDateFolder'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "value": "txt",
+                                        "activities": [
+                                            {
+                                                "name": "TXT Copy",
+                                                "type": "Copy",
+                                                "dependsOn": [],
+                                                "policy": {
+                                                    "timeout": "7.00:00:00",
+                                                    "retry": 0,
+                                                    "retryIntervalInSeconds": 30,
+                                                    "secureOutput": false,
+                                                    "secureInput": false
+                                                },
+                                                "userProperties": [],
+                                                "typeProperties": {
+                                                    "source": {
+                                                        "type": "DelimitedTextSource",
+                                                        "storeSettings": {
+                                                            "type": "FileServerReadSettings",
+                                                            "recursive": true
+                                                        },
+                                                        "formatSettings": {
+                                                            "type": "DelimitedTextReadSettings"
+                                                        }
+                                                    },
+                                                    "sink": {
+                                                        "type": "DelimitedTextSink",
+                                                        "storeSettings": {
+                                                            "type": "AzureBlobFSWriteSettings"
+                                                        },
+                                                        "formatSettings": {
+                                                            "type": "DelimitedTextWriteSettings",
+                                                            "quoteAllText": true,
+                                                            "fileExtension": ".txt"
+                                                        }
+                                                    },
+                                                    "enableStaging": false,
+                                                    "translator": {
+                                                        "type": "TabularTranslator",
+                                                        "typeConversion": true,
+                                                        "typeConversionSettings": {
+                                                            "allowDataTruncation": true,
+                                                            "treatBooleanAsNumber": false
+                                                        }
+                                                    }
+                                                },
+                                                "inputs": [
+                                                    {
+                                                        "referenceName": "LocalFileTxt",
+                                                        "type": "DatasetReference",
+                                                        "parameters": {
+                                                            "Directory": {
+                                                                "value": "@toLower('')",
+                                                                "type": "Expression"
+                                                            },
+                                                            "FileName": {
+                                                                "value": "@item().name",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "outputs": [
+                                                    {
+                                                        "referenceName": "LakeFileCSV",
+                                                        "type": "DatasetReference",
+                                                        "parameters": {
+                                                            "FileName": {
+                                                                "value": "@replace(item().name,'txt','csv')",
+                                                                "type": "Expression"
+                                                            },
+                                                            "Directory": {
+                                                                "value": "@concat('Landing/',variables('ProcessDateFolder'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "defaultActivities": [
+                                    {
+                                        "name": "Binary Copy",
+                                        "type": "Copy",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "timeout": "7.00:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "BinarySource",
+                                                "storeSettings": {
+                                                    "type": "FileServerReadSettings",
+                                                    "recursive": true
+                                                },
+                                                "formatSettings": {
+                                                    "type": "BinaryReadSettings"
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "BinarySink",
+                                                "storeSettings": {
+                                                    "type": "AzureBlobFSWriteSettings"
+                                                }
+                                            },
+                                            "enableStaging": false
+                                        },
+                                        "inputs": [
+                                            {
+                                                "referenceName": "LocalFile",
+                                                "type": "DatasetReference",
+                                                "parameters": {
+                                                    "Directory": {
+                                                        "value": "@toLower('')",
+                                                        "type": "Expression"
+                                                    },
+                                                    "FileName": {
+                                                        "value": "@item().name",
+                                                        "type": "Expression"
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "outputs": [
+                                            {
+                                                "referenceName": "LakeFile",
+                                                "type": "DatasetReference",
+                                                "parameters": {
+                                                    "Directory": {
+                                                        "value": "@concat('Landing/',variables('ProcessDateFolder'))",
+                                                        "type": "Expression"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Set Landing Path",
+                "type": "SetVariable",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "ProcessDateFolder",
+                    "value": {
+                        "value": "@concat('Year=',formatDateTime(utcnow(),'yyyy'),'/','Month=',formatDateTime(utcnow(),'MM'),'/','Day=',formatDateTime(utcnow(),'dd'),'/','Hour=',formatDateTime(utcnow(),'hh'))",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Create Tables",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Upload Files",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "Get CSV File List",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Get CSV File List').output.childItems",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Create Table",
+                            "type": "SynapseNotebook",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "7.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "notebook": {
+                                    "referenceName": "Create Consumption Table",
+                                    "type": "NotebookReference"
+                                },
+                                "parameters": {
+                                    "inputFilePathFull": {
+                                        "value": {
+                                            "value": "@concat('/Landing/',variables('ProcessDateFolder'),'/',item().name)",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Get CSV File List",
+                "type": "GetMetadata",
+                "dependsOn": [
+                    {
+                        "activity": "Upload Files",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "LakeFileCSV",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "FileName": {
+                                "value": "@toLower('')",
+                                "type": "Expression"
+                            },
+                            "Directory": {
+                                "value": "@concat('Landing/',variables('ProcessDateFolder'))",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings"
+                    },
+                    "formatSettings": {
+                        "type": "DelimitedTextReadSettings"
+                    }
+                }
+            }
+        ],
+        "variables": {
+            "ProcessDateFolder": {
+                "type": "String"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2020-09-24T14:21:09Z"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
+}
