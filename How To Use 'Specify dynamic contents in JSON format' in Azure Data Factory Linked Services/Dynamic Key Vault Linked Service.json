@@ -13,3 +13,23 @@
         }
     }
 }
+
+
+{
+    "name": "trainingdb01",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureSqlDatabase",
+        "typeProperties": {
+            "connectionString": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                    "referenceName": "@{linkedService().KeyVaultName}",
+                    "type": "LinkedServiceReference"
+                },
+                "secretName": "ConnectionString-trainingdb01"
+            }
+        }
+    }
+}
