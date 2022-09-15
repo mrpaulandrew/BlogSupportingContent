@@ -626,7 +626,7 @@ $CheckNumber += 1
 $CheckDetail = "Linked Service(s) without annotations."
 Write-Host "Running check... " $CheckDetail
 $Severity = "Low"
-ForEach ($Pipeline in $Pipelines)
+ForEach ($LinkedService in $LinkedServices)
 {
     $LinkedServiceName = (CleanName -RawValue $LinkedService.name.ToString())
     $LinkedServiceAnnotations = $Pipeline.properties.annotations.Count
@@ -814,7 +814,7 @@ Write-Host "Running check... " $CheckDetail
 $Severity = "Low"
 ForEach ($Trigger in $Triggers)
 {
-    $TriggerName = (CleanName -RawValue $Pipeline.name.ToString())
+    $TriggerName = (CleanName -RawValue $Trigger.name.ToString())
     $TriggerDescription = $Trigger.properties.description
 
     if(([string]::IsNullOrEmpty($TriggerDescription)))
